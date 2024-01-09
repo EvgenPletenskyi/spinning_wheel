@@ -1,0 +1,22 @@
+{
+  "name": "spinning-wheel-pixi-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild app.ts --bundle --outfile=dist/bundle.js",
+    "build1": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pixi.js": "^7.3.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.19.11",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
