@@ -1,13 +1,11 @@
 import {Application, Sprite, Container} from 'pixi.js';
+import {gsap, Linear, Back, Sine} from "gsap";
 
-let winSection = 2;
+let winSection = 1;
 let rotation = false;
-let maxSpeed = 15;
-const acceleration = 0.08;
-const stopAcceleration = 0.05;
-let rotationSpeed = 0;
-let twist = false;
-let stopAngle: number;
+let rotationAbility = true;
+let stopAngle = 0;
+let test = false;
 
 const w = 800;
 const h = 600;
@@ -30,7 +28,7 @@ app.stage.addChild(container);
 const wheelStand = Sprite.from("./assets/wheel_stand.png");
 wheelStand.anchor.set(0.5);
 
-const wheel = Sprite.from("./assets/wheel.png");
+const wheel: Sprite = Sprite.from("./assets/wheel.png");
 wheel.scale.set(0.6);
 wheel.anchor.set(0.5);
 
@@ -45,73 +43,59 @@ container.y = app.screen.height / 2;
 wheel.x = wheelStand.width / 2;
 wheel.y = wheelStand.height / 2 - 100;
 
-getStopAngle(winSection);
+// getStopAngle(winSection);
 
 wheel.eventMode = 'static';
 
 wheel.cursor = 'pointer';
 
 // wheel.on('click', wheelBehavior);
-wheel.on('click', getClick);
-app.ticker.add((delta) => {
-    resetAngle();
+wheel.on('click', click);
+
+function click() {
+    if (rotationAbility) {
+        rotation = !rotation
+    } else {
+        return;
+    }
 
     if (rotation) {
-
-        rotationSpeed += acceleration * delta;
-        rotationSpeed = Math.min(rotationSpeed, maxSpeed);
-        wheel.angle += rotationSpeed;
-
-    } else if (rotationSpeed !== 0 && !rotation) {
-
-        if (rotationSpeed !== 3 && !twist) {
-            rotationSpeed -= stopAcceleration * delta;
-            rotationSpeed = Math.max(rotationSpeed, 3);
-            wheel.angle += rotationSpeed;
-
-        } else if (Math.abs(wheel.angle - stopAngle) >= 10 && !twist) {
-            wheel.angle += rotationSpeed;
-
-        } else {
-            twist = true;
-        }
-        if (Math.round(wheel.angle) != winSection * 90 && twist) {
-            rotationSpeed -= stopAcceleration * delta;
-            rotationSpeed = Math.max(rotationSpeed, 1);
-            wheel.angle += rotationSpeed;
-        } else if (twist) {
-            rotationSpeed = 0;
-            rotation = false;
-            twist = false;
-        }
+        rotationAbility = false;
+        gsap.to(wheel, {
+            duration: 2.5,
+            repeat: 0,
+            ease: Sine.easeIn,
+            angle: 360 * 4,
+            onComplete: () => {
+                rotationAbility = true;
+                gsap.killTweensOf(wheel);
+                gsap.to(wheel, {
+                    duration: 0.3,
+                    repeat: -1,
+                    ease: Linear.easeNone,
+                    angle: 360 * 5,
+                    overwrite: "auto",
+                });
+            }
+        });
     }
-})
-
-function resetAngle() {
-    if (wheel.angle >= 360) {
-        wheel.angle = 0;
-    }
-}
-
-function getStopAngle(winSection) {
-    switch (winSection) {
-        case 0:
-            stopAngle = 270;
-            break;
-        case 1:
-            stopAngle = 0;
-            break;
-        case 2:
-            stopAngle = 90;
-            break;
-        case 3:
-            stopAngle = 180;
-    }
-}
-
-function getClick() {
-    console.log('click');
-    if (rotationSpeed === maxSpeed || rotationSpeed === 0) {
-        rotation = !rotation;
+    if (!rotation) {
+        gsap.killTweensOf(wheel);
+        console.log('meee')
+        gsap.to(wheel, {
+            duration: 3,
+            repeat: 0,
+            ease: Back.easeOut.config(1),
+            angle: 360 * 7 + stopAngle + winSection * 90,
+            onUpdate: () => {
+                if (Math.round (wheel.angle % 360 )!== 0 && !test){
+                    stopAngle++;
+                }else {
+                    console.log(stopAngle);
+                    test = true
+                    stopAngle = 360 ;
+                }
+            },
+        });
     }
 }
