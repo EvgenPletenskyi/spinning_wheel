@@ -1,11 +1,7 @@
 import {Application, Sprite, Container} from 'pixi.js';
 import {gsap, Linear, Back, Sine} from "gsap";
 
-let winSection = 1;
-let rotation = false;
-let rotationAbility = true;
-let stopAngle = 0;
-let test = false;
+let winSection = 0;
 
 const w = 800;
 const h = 600;
@@ -17,7 +13,7 @@ const app = new Application<HTMLCanvasElement>({
     height: h,
 });
 globalThis.__PIXI_APP__ = app;
-// app.ticker.maxFPS = 20;
+// app.ticker.maxFPS = 10;
 
 document.getElementById("pixi_container").appendChild(app.view);
 
@@ -43,59 +39,42 @@ container.y = app.screen.height / 2;
 wheel.x = wheelStand.width / 2;
 wheel.y = wheelStand.height / 2 - 100;
 
-// getStopAngle(winSection);
 
 wheel.eventMode = 'static';
 
 wheel.cursor = 'pointer';
 
 // wheel.on('click', wheelBehavior);
-wheel.on('click', click);
+wheel.once('click', startSpinning);
 
-function click() {
-    if (rotationAbility) {
-        rotation = !rotation
-    } else {
-        return;
-    }
+function continueSpinning() {
+    wheel.once('click', stopSpinning);
+    wheel.angle = 0;
+    gsap.to(wheel, {
+        duration: 0.3,
+        repeat: -1,
+        ease: Linear.easeNone,
+        angle: 360,
+        overwrite: "auto",
+    });
+}
 
-    if (rotation) {
-        rotationAbility = false;
-        gsap.to(wheel, {
-            duration: 2.5,
-            repeat: 0,
-            ease: Sine.easeIn,
-            angle: 360 * 4,
-            onComplete: () => {
-                rotationAbility = true;
-                gsap.killTweensOf(wheel);
-                gsap.to(wheel, {
-                    duration: 0.3,
-                    repeat: -1,
-                    ease: Linear.easeNone,
-                    angle: 360 * 5,
-                    overwrite: "auto",
-                });
-            }
-        });
-    }
-    if (!rotation) {
-        gsap.killTweensOf(wheel);
-        console.log('meee')
-        gsap.to(wheel, {
-            duration: 3,
-            repeat: 0,
-            ease: Back.easeOut.config(1),
-            angle: 360 * 7 + stopAngle + winSection * 90,
-            onUpdate: () => {
-                if (Math.round (wheel.angle % 360 )!== 0 && !test){
-                    stopAngle++;
-                }else {
-                    console.log(stopAngle);
-                    test = true
-                    stopAngle = 360 ;
-                }
-            },
-        });
-    }
+function startSpinning() {
+    gsap.to(wheel, {
+        duration: 1,
+        repeat: 0,
+        ease: Sine.easeIn,
+        angle: 360,
+        onComplete: continueSpinning,
+    });
+}
+
+function stopSpinning() {
+    gsap.killTweensOf(wheel);
+    gsap.to(wheel, {
+        duration: 3,
+        repeat: 0,
+        ease: Back.easeOut.config(1),
+        angle: 360 * 2 + winSection * 90,
+    })
 }
